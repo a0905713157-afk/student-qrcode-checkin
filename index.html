@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生掃碼報到系統</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; padding-top: 50px; background-color: #f4f7f6; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 360px; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        #message { margin-top: 15px; padding: 10px; border-radius: 5px; display: none; text-align: center; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>學生活動報到</h2>
+        <form id="checkinForm">
+            <input type="text" id="student_id" placeholder="請輸入學號" required>
+            <input type="text" id="student_name" placeholder="請輸入姓名" required>
+            <button type="submit">完成報到</button>
+        </form>
+        <div id="message"></div>
+    </div>
+<script>
+        document.getElementById('checkinForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const studentId = document.getElementById('student_id').value.trim();
+            const studentName = document.getElementById('student_name').value.trim();
+            const msgDiv = document.getElementById('message');
+
+            msgDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/checkin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id: studentId, student_name: studentName })
+                });
+
+                const result = await response.json();
+
+                msgDiv.style.display = 'block';
+                if (response.ok) {
+                    msgDiv.className = 'success';
+                    msgDiv.innerHTML = `${result.message}<br>累積報到次數：<b>${result.total_checkins}</b> 次`;
+                    document.getElementById('checkinForm').reset();
+                } else {
+                    msgDiv.className = 'error';
+                    msgDiv.innerText = result.message;
+                }
+            } catch (err) {
+                msgDiv.style.display = 'block';
+                msgDiv.className = 'error';
+                msgDiv.innerText = '網路連線失敗，請稍後再試！';
+            }
+        });
+    </script>
+</body>
+</html>
